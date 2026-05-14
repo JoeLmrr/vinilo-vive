@@ -14,16 +14,21 @@ export function GenreFilter({ categorias, categoriaSeleccionada, onSelectCategor
         Géneros
       </h3>
 
-      <div className="flex lg:flex-col flex-wrap gap-3">
+      {/* MODIFICACIÓN: 
+          - 'grid grid-cols-2': En móvil fuerza 2 columnas exactas.
+          - 'lg:flex lg:flex-col': En PC vuelve a la lista vertical original.
+      */}
+      <div className="grid grid-cols-2 gap-3 lg:flex lg:flex-col">
         {categorias.map(categoria => (
           <button
             key={categoria}
             onClick={() => onSelectCategoria(categoria)}
-            className={`px-6 py-3 rounded-xl text-sm font-bold text-left transition-colors ${
+            className={`px-4 py-3 rounded-xl text-sm font-bold text-center lg:text-left transition-colors truncate ${
               categoriaSeleccionada === categoria
                 ? "bg-brown-800 text-beige-50"
                 : "bg-white text-brown-600 border border-beige-200 hover:bg-beige-200"
             }`}
+            title={categoria} // Muestra el nombre completo al pasar el mouse si está truncado
           >
             {categoria}
           </button>

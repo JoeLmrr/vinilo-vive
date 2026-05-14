@@ -1,3 +1,33 @@
+import React, { useEffect, useState } from 'react';
+import { api } from '../../services/api';
+import { Producto } from '../../types/product';
+import { 
+  Database, 
+  Search, 
+  Save, 
+  RefreshCw,
+  AlertTriangle,
+  ArrowRight,
+  Minus,
+  Plus
+} from 'lucide-react';
+
+export const AdminInventory = () => {
+  const [products, setProducts] = useState<Producto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [editedStock, setEditedStock] = useState<Record<string | number, number>>({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const data = await api.getProductos();
+      setProducts(data);
       // Initialize edited stock with current values
       const initialStock: Record<string | number, number> = {};
       data.forEach(p => initialStock[p.id] = p.stock);

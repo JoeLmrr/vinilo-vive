@@ -232,4 +232,226 @@ export const AdminProducts = () => {
                     </td>
                     <td className="px-6 py-4">
                       {product.activo ? (
-                        <span className="text
+                        <span className="text-green-600 text-sm font-bold">Activo</span>
+                      ) : (
+                        <span className="text-brown-300 text-sm font-medium">Inactivo</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => handleOpenModal(product)}
+                          className="p-2 hover:bg-beige-100 text-brown-300 hover:text-accent rounded-lg transition-colors"
+                        >
+                          <Edit2 className="w-5 h-5" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(product.id)}
+                          className="p-2 hover:bg-red-50 text-brown-300 hover:text-red-500 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Modal Form */}
+      {isModalOpen && currentProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brown-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="sticky top-0 bg-white px-8 py-6 border-b border-beige-100 flex items-center justify-between z-10">
+              <h2 className="text-2xl font-bold text-brown-800 font-serif">
+                {currentProduct.id ? 'Editar Producto' : 'Nuevo Producto'}
+              </h2>
+              <button onClick={handleCloseModal} className="p-2 hover:bg-beige-50 rounded-full transition-colors">
+                <X className="w-6 h-6 text-brown-300" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSave} className="p-8 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Basic Info */}
+                <div className="space-y-6">
+                  <h3 className="text-sm font-bold text-accent uppercase tracking-widest">Información Básica</h3>
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-brown-700">Nombre del Álbum / Producto</label>
+                    <input
+                      type="text"
+                      required
+                      value={currentProduct.nombre || ''}
+                      onChange={(e) => setCurrentProduct({...currentProduct, nombre: e.target.value})}
+                      className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
+                      placeholder="Ej: Dark Side of the Moon"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-brown-700">Artista / Marca</label>
+                    <input
+                      type="text"
+                      required
+                      value={currentProduct.artista || ''}
+                      onChange={(e) => setCurrentProduct({...currentProduct, artista: e.target.value})}
+                      className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
+                      placeholder="Ej: Pink Floyd"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-brown-700">Precio ($)</label>
+                      <input
+                        type="number"
+                        required
+                        value={currentProduct.precio || 0}
+                        onChange={(e) => setCurrentProduct({...currentProduct, precio: parseFloat(e.target.value)})}
+                        className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-brown-700">Stock Inicial</label>
+                      <input
+                        type="number"
+                        required
+                        value={currentProduct.stock || 0}
+                        onChange={(e) => setCurrentProduct({...currentProduct, stock: parseInt(e.target.value)})}
+                        className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-brown-700">Descripción</label>
+                    <textarea
+                      rows={4}
+                      value={currentProduct.descripcion || ''}
+                      onChange={(e) => setCurrentProduct({...currentProduct, descripcion: e.target.value})}
+                      className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all resize-none"
+                      placeholder="Breve descripción del producto..."
+                    />
+                  </div>
+                </div>
+
+                {/* Categories and Media */}
+                <div className="space-y-6">
+                  <h3 className="text-sm font-bold text-accent uppercase tracking-widest">Detalles y Media</h3>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-brown-700">Género</label>
+                      <select
+                        value={currentProduct.genero || 'Rock'}
+                        onChange={(e) => setCurrentProduct({...currentProduct, genero: e.target.value})}
+                        className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
+                      >
+                        <option value="Rock">Rock</option>
+                        <option value="Jazz">Jazz</option>
+                        <option value="Pop">Pop</option>
+                        <option value="Electronica">Electrónica</option>
+                        <option value="Blues">Blues</option>
+                        <option value="Metal">Metal</option>
+                        <option value="Accesorios">Accesorios</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-brown-700">Formato</label>
+                      <select
+                        value={currentProduct.formato || 'Vinilo'}
+                        onChange={(e) => setCurrentProduct({...currentProduct, formato: e.target.value})}
+                        className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
+                      >
+                        <option value="Vinilo">Vinilo LP</option>
+                        <option value="Vinilo 7">Vinilo 7"</option>
+                        <option value="CD">CD</option>
+                        <option value="Accesorio">Accesorio</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-brown-700">URL de la Imagen</label>
+                    <div className="flex gap-4">
+                      <div className="flex-grow">
+                        <input
+                          type="text"
+                          value={currentProduct.imagen_url || ''}
+                          onChange={(e) => setCurrentProduct({...currentProduct, imagen_url: e.target.value})}
+                          className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
+                          placeholder="https://..."
+                        />
+                      </div>
+                      <div className="w-14 h-14 rounded-xl bg-beige-50 border border-beige-100 flex-shrink-0 overflow-hidden">
+                        {currentProduct.imagen_url ? (
+                          <img src={currentProduct.imagen_url} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <ImageIcon className="w-full h-full p-4 text-brown-200" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={currentProduct.disco_del_mes || false}
+                        onChange={(e) => setCurrentProduct({...currentProduct, disco_del_mes: e.target.checked})}
+                        className="w-5 h-5 rounded border-beige-200 text-accent focus:ring-accent transition-all"
+                      />
+                      <span className="text-sm font-medium text-brown-700 group-hover:text-accent">Disco del Mes</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={currentProduct.destacado || false}
+                        onChange={(e) => setCurrentProduct({...currentProduct, destacado: e.target.checked})}
+                        className="w-5 h-5 rounded border-beige-200 text-accent focus:ring-accent transition-all"
+                      />
+                      <span className="text-sm font-medium text-brown-700 group-hover:text-accent">Destacado en Home</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={currentProduct.recien_llegado || false}
+                        onChange={(e) => setCurrentProduct({...currentProduct, recien_llegado: e.target.checked})}
+                        className="w-5 h-5 rounded border-beige-200 text-accent focus:ring-accent transition-all"
+                      />
+                      <span className="text-sm font-medium text-brown-700 group-hover:text-accent">Recién Llegado</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-beige-100 flex items-center justify-end gap-4">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="px-6 py-3 border border-beige-100 rounded-xl hover:bg-beige-50 font-semibold transition-all text-brown-600"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-10 py-3 bg-brown-700 hover:bg-brown-800 text-white rounded-xl font-bold shadow-lg shadow-brown-900/10 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSaving ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : <Check className="w-5 h-5" />}
+                  {currentProduct.id ? 'Actualizar Producto' : 'Crear Producto'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

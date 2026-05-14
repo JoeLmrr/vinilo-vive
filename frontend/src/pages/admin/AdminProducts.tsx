@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export const AdminProducts = () => {
+  // --- ESTADOS ---
   const [products, setProducts] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,10 +24,12 @@ export const AdminProducts = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
+  // --- EFECTOS ---
   useEffect(() => {
     fetchProducts();
   }, []);
 
+  // --- FUNCIONES DE CARGA Y NOTIFICACIÓN ---
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -44,10 +47,12 @@ export const AdminProducts = () => {
     setTimeout(() => setNotification(null), 3000);
   };
 
+  // --- MANEJO DEL MODAL ---
   const handleOpenModal = (product?: Producto) => {
     if (product) {
       setCurrentProduct(product);
     } else {
+      // Valores por defecto para nuevos productos
       setCurrentProduct({
         nombre: '',
         artista: '',
@@ -73,14 +78,23 @@ export const AdminProducts = () => {
     setCurrentProduct(null);
   };
 
+  // --- LÓGICA DE GUARDADO (CON CORRECCIÓN DE URL) ---
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Evita la recarga de página
     if (!currentProduct) return;
 
     setIsSaving(true);
     try {
-      // Generar slug si no existe
-      const productToSave = { ...currentProduct };
+      // 1. Sanitización de datos: Limpiamos la URL y aseguramos que los números sean correctos
+      const productToSave = { 
+        ...currentProduct,
+        // .trim() elimina espacios en blanco accidentales al inicio/final de la URL
+        imagen_url: currentProduct.imagen_url?.trim() || '',
+        precio: Number(currentProduct.precio) || 0,
+        stock: Number(currentProduct.stock) || 0
+      };
+
+      // 2. Generación automática de slug para SEO si no existe
       if (!productToSave.slug && productToSave.nombre) {
         productToSave.slug = productToSave.nombre
           .toLowerCase()
@@ -88,6 +102,7 @@ export const AdminProducts = () => {
           .replace(/[^\w-]+/g, '');
       }
 
+      // 3. Envío a la API (Update o Create)
       if (currentProduct.id) {
         await api.updateProducto(currentProduct.id, productToSave);
         showNotification('success', 'Producto actualizado correctamente');
@@ -95,6 +110,8 @@ export const AdminProducts = () => {
         await api.createProducto(productToSave);
         showNotification('success', 'Producto creado correctamente');
       }
+
+      // 4. Refrescar lista y cerrar
       fetchProducts();
       handleCloseModal();
     } catch (error) {
@@ -105,6 +122,7 @@ export const AdminProducts = () => {
     }
   };
 
+  // --- ELIMINACIÓN ---
   const handleDelete = async (id: string | number) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este producto?')) {
       try {
@@ -117,6 +135,7 @@ export const AdminProducts = () => {
     }
   };
 
+  // --- FILTRADO ---
   const filteredProducts = products.filter(p => 
     p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.artista.toLowerCase().includes(searchTerm.toLowerCase())
@@ -124,6 +143,7 @@ export const AdminProducts = () => {
 
   return (
     <div className="space-y-6 font-sans">
+      {/* HEADER SECCIÓN */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-brown-800 font-serif">Gestión de Productos</h1>
@@ -131,14 +151,14 @@ export const AdminProducts = () => {
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="flex items-center justify-center gap-2 bg-brown-700 hover:bg-brown-800 text-white px-6 py-3 rounded-xl transition-all shadow-lg shadow-brown-900/10 font-semibold"
+          className="flex items-center justify-center gap-2 bg-brown-700 hover:bg-brown-800 text-white px-6 py-3 rounded-xl transition-all shadow-lg font-semibold"
         >
           <Plus className="w-5 h-5" />
           Añadir Producto
         </button>
       </div>
 
-      {/* Notifications */}
+      {/* NOTIFICACIONES FLOTANTES */}
       {notification && (
         <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl transition-all animate-in fade-in slide-in-from-top-4 ${
           notification.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
@@ -148,7 +168,7 @@ export const AdminProducts = () => {
         </div>
       )}
 
-      {/* Filters and Search */}
+      {/* BARRA DE BÚSQUEDA */}
       <div className="bg-white p-4 rounded-2xl border border-beige-100 shadow-sm flex flex-col md:flex-row gap-4">
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brown-300 w-5 h-5" />
@@ -160,13 +180,9 @@ export const AdminProducts = () => {
             className="w-full pl-10 pr-4 py-2 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all bg-beige-50/30"
           />
         </div>
-        <button className="flex items-center justify-center gap-2 px-4 py-2 border border-beige-100 rounded-xl hover:bg-beige-50 transition-colors text-brown-600">
-          <Filter className="w-5 h-5" />
-          Filtros
-        </button>
       </div>
 
-      {/* Products Table */}
+      {/* TABLA DE PRODUCTOS */}
       <div className="bg-white rounded-2xl border border-beige-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -219,11 +235,8 @@ export const AdminProducts = () => {
                     <td className="px-6 py-4 font-bold text-brown-800">
                       ${product.precio.toLocaleString()}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${product.stock > 5 ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                        <span className="font-medium text-brown-600">{product.stock} unidades</span>
-                      </div>
+                    <td className="px-6 py-4 font-medium text-brown-600">
+                      {product.stock} unidades
                     </td>
                     <td className="px-6 py-4">
                       {product.activo ? (
@@ -234,16 +247,10 @@ export const AdminProducts = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => handleOpenModal(product)}
-                          className="p-2 hover:bg-beige-100 text-brown-300 hover:text-accent rounded-lg transition-colors"
-                        >
+                        <button onClick={() => handleOpenModal(product)} className="p-2 hover:bg-beige-100 text-brown-300 hover:text-accent rounded-lg transition-colors">
                           <Edit2 className="w-5 h-5" />
                         </button>
-                        <button 
-                          onClick={() => handleDelete(product.id)}
-                          className="p-2 hover:bg-red-50 text-brown-300 hover:text-red-500 rounded-lg transition-colors"
-                        >
+                        <button onClick={() => handleDelete(product.id)} className="p-2 hover:bg-red-50 text-brown-300 hover:text-red-500 rounded-lg transition-colors">
                           <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
@@ -256,10 +263,10 @@ export const AdminProducts = () => {
         </div>
       </div>
 
-      {/* Modal Form */}
+      {/* MODAL FORMULARIO */}
       {isModalOpen && currentProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brown-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brown-900/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl">
             <div className="sticky top-0 bg-white px-8 py-6 border-b border-beige-100 flex items-center justify-between z-10">
               <h2 className="text-2xl font-bold text-brown-800 font-serif">
                 {currentProduct.id ? 'Editar Producto' : 'Nuevo Producto'}
@@ -271,10 +278,9 @@ export const AdminProducts = () => {
 
             <form onSubmit={handleSave} className="p-8 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Basic Info */}
+                {/* COLUMNA 1: INFO BÁSICA */}
                 <div className="space-y-6">
                   <h3 className="text-sm font-bold text-accent uppercase tracking-widest">Información Básica</h3>
-                  
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-brown-700">Nombre del Álbum / Producto</label>
                     <input
@@ -282,11 +288,9 @@ export const AdminProducts = () => {
                       required
                       value={currentProduct.nombre || ''}
                       onChange={(e) => setCurrentProduct({...currentProduct, nombre: e.target.value})}
-                      className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
-                      placeholder="Ej: Dark Side of the Moon"
+                      className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl outline-none"
                     />
                   </div>
-
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-brown-700">Artista / Marca</label>
                     <input
@@ -294,11 +298,9 @@ export const AdminProducts = () => {
                       required
                       value={currentProduct.artista || ''}
                       onChange={(e) => setCurrentProduct({...currentProduct, artista: e.target.value})}
-                      className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
-                      placeholder="Ej: Pink Floyd"
+                      className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl outline-none"
                     />
                   </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-brown-700">Precio ($)</label>
@@ -307,7 +309,7 @@ export const AdminProducts = () => {
                         required
                         value={currentProduct.precio || 0}
                         onChange={(e) => setCurrentProduct({...currentProduct, precio: parseFloat(e.target.value)})}
-                        className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
+                        className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl outline-none"
                       />
                     </div>
                     <div className="space-y-2">
@@ -317,34 +319,22 @@ export const AdminProducts = () => {
                         required
                         value={currentProduct.stock || 0}
                         onChange={(e) => setCurrentProduct({...currentProduct, stock: parseInt(e.target.value)})}
-                        className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
+                        className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl outline-none"
                       />
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-brown-700">Descripción</label>
-                    <textarea
-                      rows={4}
-                      value={currentProduct.descripcion || ''}
-                      onChange={(e) => setCurrentProduct({...currentProduct, descripcion: e.target.value})}
-                      className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all resize-none"
-                      placeholder="Breve descripción del producto..."
-                    />
-                  </div>
                 </div>
 
-                {/* Categories and Media */}
+                {/* COLUMNA 2: DETALLES Y MEDIA (AQUÍ ESTÁ EL ARREGLO) */}
                 <div className="space-y-6">
                   <h3 className="text-sm font-bold text-accent uppercase tracking-widest">Detalles y Media</h3>
-                  
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-brown-700">Género</label>
                       <select
                         value={currentProduct.genero || 'Rock'}
                         onChange={(e) => setCurrentProduct({...currentProduct, genero: e.target.value})}
-                        className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
+                        className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl outline-none"
                       >
                         <option value="Rock">Rock</option>
                         <option value="Jazz">Jazz</option>
@@ -360,7 +350,7 @@ export const AdminProducts = () => {
                       <select
                         value={currentProduct.formato || 'Vinilo'}
                         onChange={(e) => setCurrentProduct({...currentProduct, formato: e.target.value})}
-                        className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
+                        className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl outline-none"
                       >
                         <option value="Vinilo">Vinilo LP</option>
                         <option value="Vinilo 7">Vinilo 7"</option>
@@ -370,21 +360,22 @@ export const AdminProducts = () => {
                     </div>
                   </div>
 
+                  {/* CAMBIO CLAVE: type="text" para evitar bloqueos por validación de URL de HTML5 */}
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-brown-700">URL de la Imagen</label>
                     <div className="flex gap-4">
                       <div className="flex-grow">
                         <input
-                          type="url"
+                          type="text" 
                           value={currentProduct.imagen_url || ''}
                           onChange={(e) => setCurrentProduct({...currentProduct, imagen_url: e.target.value})}
-                          className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
-                          placeholder="https://..."
+                          className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none"
+                          placeholder="Pega la URL de la imagen aquí..."
                         />
                       </div>
                       <div className="w-14 h-14 rounded-xl bg-beige-50 border border-beige-100 flex-shrink-0 overflow-hidden">
                         {currentProduct.imagen_url ? (
-                          <img src={currentProduct.imagen_url} alt="Preview" className="w-full h-full object-cover" />
+                          <img src={currentProduct.imagen_url} alt="Vista previa" className="w-full h-full object-cover" />
                         ) : (
                           <ImageIcon className="w-full h-full p-4 text-brown-200" />
                         )}
@@ -392,54 +383,35 @@ export const AdminProducts = () => {
                     </div>
                   </div>
 
+                  {/* CHECKBOXES DE CATEGORÍAS */}
                   <div className="space-y-4 pt-4">
                     <label className="flex items-center gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={currentProduct.disco_del_mes || false}
-                        onChange={(e) => setCurrentProduct({...currentProduct, disco_del_mes: e.target.checked})}
-                        className="w-5 h-5 rounded border-beige-200 text-accent focus:ring-accent transition-all"
-                      />
+                      <input type="checkbox" checked={currentProduct.disco_del_mes} onChange={(e) => setCurrentProduct({...currentProduct, disco_del_mes: e.target.checked})} className="w-5 h-5 rounded border-beige-200 text-accent" />
                       <span className="text-sm font-medium text-brown-700 group-hover:text-accent">Disco del Mes</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={currentProduct.destacado || false}
-                        onChange={(e) => setCurrentProduct({...currentProduct, destacado: e.target.checked})}
-                        className="w-5 h-5 rounded border-beige-200 text-accent focus:ring-accent transition-all"
-                      />
+                      <input type="checkbox" checked={currentProduct.destacado} onChange={(e) => setCurrentProduct({...currentProduct, destacado: e.target.checked})} className="w-5 h-5 rounded border-beige-200 text-accent" />
                       <span className="text-sm font-medium text-brown-700 group-hover:text-accent">Destacado en Home</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={currentProduct.recien_llegado || false}
-                        onChange={(e) => setCurrentProduct({...currentProduct, recien_llegado: e.target.checked})}
-                        className="w-5 h-5 rounded border-beige-200 text-accent focus:ring-accent transition-all"
-                      />
+                      <input type="checkbox" checked={currentProduct.recien_llegado} onChange={(e) => setCurrentProduct({...currentProduct, recien_llegado: e.target.checked})} className="w-5 h-5 rounded border-beige-200 text-accent" />
                       <span className="text-sm font-medium text-brown-700 group-hover:text-accent">Recién Llegado</span>
                     </label>
                   </div>
                 </div>
               </div>
 
+              {/* BOTONES ACCIÓN */}
               <div className="pt-6 border-t border-beige-100 flex items-center justify-end gap-4">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-6 py-3 border border-beige-100 rounded-xl hover:bg-beige-50 font-semibold transition-all text-brown-600"
-                >
+                <button type="button" onClick={handleCloseModal} className="px-6 py-3 border border-beige-100 rounded-xl hover:bg-beige-50 font-semibold text-brown-600">
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-10 py-3 bg-brown-700 hover:bg-brown-800 text-white rounded-xl font-bold shadow-lg shadow-brown-900/10 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-10 py-3 bg-brown-700 hover:bg-brown-800 text-white rounded-xl font-bold shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
                 >
-                  {isSaving ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  ) : <Check className="w-5 h-5" />}
+                  {isSaving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Check className="w-5 h-5" />}
                   {currentProduct.id ? 'Actualizar Producto' : 'Crear Producto'}
                 </button>
               </div>

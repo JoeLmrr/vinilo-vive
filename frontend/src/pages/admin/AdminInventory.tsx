@@ -2,22 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 import { Producto } from '../../types/product';
 import { 
-  Database, 
+  Plus, 
   Search, 
-  Save, 
-  RefreshCw,
-  AlertTriangle,
-  ArrowRight,
-  Minus,
-  Plus
+  Edit2, 
+  Trash2, 
+  MoreVertical,
+  Filter,
+  X,
+  Image as ImageIcon,
+  Check,
+  AlertCircle
 } from 'lucide-react';
 
-export const AdminInventory = () => {
+export const AdminProducts = () => {
   const [products, setProducts] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editedStock, setEditedStock] = useState<Record<string | number, number>>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState<Partial<Producto> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -28,39 +32,93 @@ export const AdminInventory = () => {
       setLoading(true);
       const data = await api.getProductos();
       setProducts(data);
-      // Initialize edited stock with current values
-      const initialStock: Record<string | number, number> = {};
-      data.forEach(p => initialStock[p.id] = p.stock);
-      setEditedStock(initialStock);
     } catch (error) {
-      console.error('Error fetching inventory:', error);
+      console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStockChange = (id: string | number, newValue: number) => {
-    if (newValue < 0) return;
-    setEditedStock(prev => ({ ...prev, [id]: newValue }));
+  const showNotification = (type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 3000);
   };
 
-  const handleSaveAll = async () => {
+  const handleOpenModal = (product?: Producto) => {
+    if (product) {
+      setCurrentProduct(product);
+    } else {
+      setCurrentProduct({
+        nombre: '',
+        artista: '',
+        descripcion: '',
+        precio: 0,
+        stock: 0,
+        imagen_url: '',
+        genero: 'Rock',
+        formato: 'Vinilo',
+        condicion: 'Nuevo',
+        activo: true,
+        disco_del_mes: false,
+        recien_llegado: false,
+        destacado: false,
+        orden_home: 0
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setCurrentProduct(null);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentProduct) return;
+
     setIsSaving(true);
     try {
-      // Find changed items
-      const changes = products.filter(p => editedStock[p.id] !== p.stock);
-      
-      await Promise.all(changes.map(p => 
-        api.updateProducto(p.id, { stock: editedStock[p.id] })
-      ));
+      // Aseguramos que la URL sea un string limpio para la base de datos
+      const productToSave = { 
+        ...currentProduct,
+        imagen_url: currentProduct.imagen_url?.trim() || ''
+      };
 
-      alert('Inventario actualizado correctamente');
+      // Generar slug si no existe
+      if (!productToSave.slug && productToSave.nombre) {
+        productToSave.slug = productToSave.nombre
+          .toLowerCase()
+          .replace(/ /g, '-')
+          .replace(/[^\w-]+/g, '');
+      }
+
+      if (currentProduct.id) {
+        await api.updateProducto(currentProduct.id, productToSave);
+        showNotification('success', 'Producto actualizado correctamente');
+      } else {
+        await api.createProducto(productToSave);
+        showNotification('success', 'Producto creado correctamente');
+      }
       fetchProducts();
+      handleCloseModal();
     } catch (error) {
-      console.error('Error saving inventory:', error);
-      alert('Error al actualizar el inventario');
+      console.error('Error saving product:', error);
+      showNotification('error', 'Error al guardar el producto');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string | number) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+      try {
+        await api.deleteProducto(id);
+        showNotification('success', 'Producto eliminado');
+        fetchProducts();
+      } catch (error) {
+        showNotification('error', 'Error al eliminar');
+      }
     }
   };
 
@@ -69,148 +127,109 @@ export const AdminInventory = () => {
     p.artista.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const hasChanges = products.some(p => editedStock[p.id] !== p.stock);
-
   return (
     <div className="space-y-6 font-sans">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-brown-800 font-serif">Control de Inventario</h1>
-          <p className="text-brown-600">Actualiza rápidamente el stock de tus productos.</p>
+          <h1 className="text-3xl font-bold text-brown-800 font-serif">Gestión de Productos</h1>
+          <p className="text-brown-600">Administra tu catálogo de vinilos y accesorios.</p>
         </div>
-        <div className="flex gap-3">
-          <button
-            onClick={fetchProducts}
-            className="p-3 border border-beige-100 rounded-xl hover:bg-beige-50 text-brown-400 transition-all"
-            title="Refrescar datos"
-          >
-            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-          <button
-            onClick={handleSaveAll}
-            disabled={!hasChanges || isSaving}
-            className="flex items-center gap-2 bg-brown-800 hover:bg-brown-900 text-white px-6 py-3 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-          >
-            <Save className="w-5 h-5" />
-            {isSaving ? 'Guardando...' : 'Guardar Cambios'}
-          </button>
-        </div>
+        <button
+          onClick={() => handleOpenModal()}
+          className="flex items-center justify-center gap-2 bg-brown-700 hover:bg-brown-800 text-white px-6 py-3 rounded-xl transition-all shadow-lg shadow-brown-900/10 font-semibold"
+        >
+          <Plus className="w-5 h-5" />
+          Añadir Producto
+        </button>
       </div>
 
-      {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-beige-100 shadow-sm">
-          <p className="text-brown-400 text-sm font-semibold uppercase tracking-wider">Total SKUs</p>
-          <p className="text-2xl font-bold text-brown-800">{products.length}</p>
+      {/* Notifications */}
+      {notification && (
+        <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl transition-all animate-in fade-in slide-in-from-top-4 ${
+          notification.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+        }`}>
+          {notification.type === 'success' ? <Check className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          <span className="font-semibold">{notification.message}</span>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-beige-100 shadow-sm">
-          <p className="text-brown-400 text-sm font-semibold uppercase tracking-wider">Stock Bajo (&lt; 5)</p>
-          <p className="text-2xl font-bold text-accent">
-            {products.filter(p => p.stock < 5).length}
-          </p>
-        </div>
-        <div className="bg-white p-6 rounded-2xl border border-beige-100 shadow-sm">
-          <p className="text-brown-400 text-sm font-semibold uppercase tracking-wider">Agotados</p>
-          <p className="text-2xl font-bold text-red-600">
-            {products.filter(p => p.stock === 0).length}
-          </p>
-        </div>
-      </div>
+      )}
 
-      {/* Search */}
-      <div className="bg-white p-4 rounded-2xl border border-beige-100 shadow-sm">
-        <div className="relative">
+      {/* Filters and Search */}
+      <div className="bg-white p-4 rounded-2xl border border-beige-100 shadow-sm flex flex-col md:flex-row gap-4">
+        <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brown-300 w-5 h-5" />
           <input
             type="text"
             placeholder="Buscar por nombre o artista..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
+            className="w-full pl-10 pr-4 py-2 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all bg-beige-50/30"
           />
         </div>
+        <button className="flex items-center justify-center gap-2 px-4 py-2 border border-beige-100 rounded-xl hover:bg-beige-50 transition-colors text-brown-600">
+          <Filter className="w-5 h-5" />
+          Filtros
+        </button>
       </div>
 
-      {/* Inventory Table */}
+      {/* Products Table */}
       <div className="bg-white rounded-2xl border border-beige-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-beige-50 border-b border-beige-100 text-brown-500 text-sm uppercase tracking-wider font-semibold">
               <tr>
                 <th className="px-6 py-4">Producto</th>
-                <th className="px-6 py-4 text-center">Stock Actual</th>
-                <th className="px-6 py-4 text-center">Nuevo Stock</th>
+                <th className="px-6 py-4">Género</th>
+                <th className="px-6 py-4">Precio</th>
+                <th className="px-6 py-4">Stock</th>
                 <th className="px-6 py-4">Estado</th>
+                <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-beige-50">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center">
+                  <td colSpan={6} className="px-6 py-12 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto"></div>
                   </td>
                 </tr>
-              ) : filteredProducts.map((product) => {
-                const currentEdited = editedStock[product.id];
-                const isChanged = currentEdited !== product.stock;
-                
-                return (
-                  <tr key={product.id} className={`hover:bg-beige-50/30 transition-colors ${isChanged ? 'bg-accent/5' : ''}`}>
+              ) : filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-brown-400">
+                    No se encontraron productos.
+                  </td>
+                </tr>
+              ) : (
+                filteredProducts.map((product) => (
+                  <tr key={product.id} className="hover:bg-beige-50/30 transition-colors group">
                     <td className="px-6 py-4">
-                      <div>
-                        <p className="font-bold text-brown-800">{product.nombre}</p>
-                        <p className="text-sm text-brown-400">{product.artista}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="font-medium text-brown-300">{product.stock}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-4">
-                        <button 
-                          onClick={() => handleStockChange(product.id, currentEdited - 1)}
-                          className="p-1 hover:bg-beige-100 rounded-lg transition-colors text-brown-400"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <input
-                          type="number"
-                          value={currentEdited}
-                          onChange={(e) => handleStockChange(product.id, parseInt(e.target.value) || 0)}
-                          className={`w-20 text-center py-2 border rounded-lg font-bold outline-none transition-all ${
-                            isChanged ? 'border-accent bg-white ring-2 ring-accent/20 text-brown-800' : 'border-beige-100 bg-beige-50/50 text-brown-600'
-                          }`}
-                        />
-                        <button 
-                          onClick={() => handleStockChange(product.id, currentEdited + 1)}
-                          className="p-1 hover:bg-beige-100 rounded-lg transition-colors text-brown-400"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-lg bg-beige-50 overflow-hidden flex-shrink-0 border border-beige-100">
+                          {product.imagen_url ? (
+                            <img src={product.imagen_url} alt={product.nombre} className="w-full h-full object-cover" />
+                          ) : (
+                            <ImageIcon className="w-full h-full p-3 text-brown-200" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-bold text-brown-800">{product.nombre}</p>
+                          <p className="text-sm text-brown-400">{product.artista}</p>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {currentEdited === 0 ? (
-                        <span className="flex items-center gap-1.5 text-red-600 font-bold text-sm">
-                          <AlertTriangle className="w-4 h-4" />
-                          AGOTADO
-                        </span>
-                      ) : currentEdited < 5 ? (
-                        <span className="flex items-center gap-1.5 text-accent font-bold text-sm">
-                          <AlertTriangle className="w-4 h-4" />
-                          STOCK BAJO
-                        </span>
-                      ) : (
-                        <span className="text-green-600 font-bold text-sm">SALUDABLE</span>
-                      )}
+                      <span className="px-3 py-1 bg-beige-100 text-brown-700 rounded-full text-xs font-bold border border-beige-200">
+                        {product.genero}
+                      </span>
                     </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-};
+                    <td className="px-6 py-4 font-bold text-brown-800">
+                      ${product.precio.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${product.stock > 5 ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                        <span className="font-medium text-brown-600">{product.stock} unidades</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {product.activo ? (
+                        <span className="text

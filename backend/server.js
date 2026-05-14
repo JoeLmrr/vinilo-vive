@@ -9,14 +9,56 @@ import { createClient } from "@supabase/supabase-js";
 
 dotenv.config();
 
+// ── Captura de errores no controlados ────────────────────────────────────────
+// Evita que el proceso muera silenciosamente sin dejar rastro en los logs.
+process.on("uncaughtException", (err) => {
+  console.error("[FATAL] uncaughtException:", err);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("[FATAL] unhandledRejection:", reason);
+});
+
+// ── Validación de variables de entorno requeridas ────────────────────────────
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error(
+    "[ERROR] Variables de entorno faltantes: " +
+    (!SUPABASE_URL ? "SUPABASE_URL " : "") +
+    (!SUPABASE_KEY ? "SUPABASE_KEY" : "")
+  );
+  console.error(
+    "[ERROR] El servidor arrancará pero las rutas de base de datos fallarán " +
+    "hasta que se configuren las variables correctamente."
+  );
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
+// ── Cliente Supabase ──────────────────────────────────────────────────────────
+// Se inicializa con valores de relleno cuando faltan las variables para que el
+// proceso no explote en el require-time y el servidor pueda responder al menos
+// al healthcheck de Railway en GET /.
+let supabase;
+try {
+  supabase = createClient(
+    SUPABASE_URL || "https://placeholder.supabase.co",
+    SUPABASE_KEY || "placeholder-key"
+  );
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    console.log("[INFO] Cliente Supabase inicializado correctamente.");
+  } else {
+    console.warn("[WARN] Cliente Supabase inicializado con valores de relleno — las consultas a BD fallarán.");
+  }
+} catch (err) {
+  console.error("[ERROR] No se pudo inicializar el cliente Supabase:", err);
+  // Objeto nulo-seguro para que las rutas devuelvan 503 en lugar de crashear.
+  supabase = null;
+}
 
 app.get("/", (req, res) => {
   res.send("Servidor funcionando 🚀");
@@ -373,8 +415,14 @@ app.put("/admin/ordenes/:id/estado", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Servidor corriendo en http://0.0.0.0:${PORT}`);
+  console.log("=".repeat(50));
+  console.log(`[INFO] Servidor Vinilo Vive arrancado correctamente`);
+  console.log(`[INFO] Escuchando en http://0.0.0.0:${PORT}`);
+  console.log(`[INFO] NODE_ENV: ${process.env.NODE_ENV || "development"}`);
+  console.log(`[INFO] Supabase URL configurada: ${SUPABASE_URL ? "✅ sí" : "❌ no"}`);
+  console.log(`[INFO] Supabase KEY configurada: ${SUPABASE_KEY ? "✅ sí" : "❌ no"}`);
+  console.log("=".repeat(50));
 });
 

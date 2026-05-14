@@ -1,4 +1,3 @@
-
 /**
  * @description Componente de tarjeta de producto optimizado para grids de 2 columnas en móvil.
  */
@@ -86,4 +85,15 @@ export function ProductCard({ producto, index = 0 }: ProductCardProps) {
                 ? agregado 
                   ? "bg-green-600 text-white" 
                   : "bg-brown-800 text-white hover:bg-accent hover:text-brown-800 shadow-md active:scale-95" 
-                : "bg-gray-300
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
+            disabled={producto.stock <= 0}
+          >
+            <ShoppingCart size={14} className="md:w-4 md:h-4" />
+            <span>{agregado ? 'Listo' : producto.stock > 0 ? 'Añadir' : 'Agotado'}</span>
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}

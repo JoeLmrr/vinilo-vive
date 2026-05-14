@@ -20,8 +20,8 @@ const MENU_CAFE = [
     categoria: "Bebidas Frias",
     icono: <Moon className="w-5 h-5" />,
     articulos: [
-      { nombre: "Ice tea de futos rojos", precio: "S/ 10.00", descripcion: "Té frío afrutado y aromático." },
-      { nombre: "Ice tea de futos jamaica", precio: "S/ 10.00", descripcion: "Té frío cítrico y refrescante." },
+      { nombre: "Ice tea de frutos rojos", precio: "S/ 10.00", descripcion: "Té frío afrutado y aromático." },
+      { nombre: "Ice tea de frutos jamaica", precio: "S/ 10.00", descripcion: "Té frío cítrico y refrescante." },
       { nombre: "IncaKola - CocaCola", precio: "S/ 5.00", descripcion: "Bebida refrescante" },
     ]
   },

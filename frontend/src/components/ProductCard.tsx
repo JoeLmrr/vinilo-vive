@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { ShoppingCart, Eye } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { Producto } from '../types/product';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
@@ -29,20 +29,19 @@ export function ProductCard({ producto, index = 0 }: ProductCardProps) {
       transition={{ delay: index * 0.05 }}
       className="h-full"
     >
-      <div className="bg-white rounded-xl shadow p-4 hover:shadow-xl transition-all duration-300 flex flex-col h-full group">
+      {/* Reducimos p-4 a p-3 en móvil para ganar espacio */}
+      <div className="bg-white rounded-xl shadow p-3 md:p-4 hover:shadow-xl transition-all duration-300 flex flex-col h-full group">
+        
         {/* Imagen del Disco */}
-        <Link to={`/Producto/${producto.id}`} className="relative aspect-square overflow-hidden rounded mb-4 bg-beige-100 block">
+        <Link to={`/Producto/${producto.id}`} className="relative aspect-square overflow-hidden rounded mb-3 md:mb-4 bg-beige-100 block">
           <img
             src={producto.imagen_url || 'https://via.placeholder.com/400'}
             alt={producto.nombre}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-             {/* Botón removido según solicitud, solo queda el efecto de oscurecimiento */}
-          </div>
           {producto.condicion && (
-            <span className="absolute top-2 right-2 bg-black/80 text-white text-[10px] px-2 py-1 rounded uppercase tracking-wider font-bold z-10">
+            <span className="absolute top-2 right-2 bg-black/80 text-white text-[8px] md:text-[10px] px-2 py-1 rounded uppercase tracking-wider font-bold z-10">
               {producto.condicion}
             </span>
           )}
@@ -51,27 +50,33 @@ export function ProductCard({ producto, index = 0 }: ProductCardProps) {
         {/* Información del Disco */}
         <div className="flex-grow flex flex-col">
           <Link to={`/Producto/${producto.id}`} className="hover:text-accent transition-colors">
-            <h3 className="text-xl font-bold text-brown-800 line-clamp-1" title={producto.nombre}>{producto.nombre}</h3>
+            {/* Reducimos el tamaño del título en móvil (text-sm vs text-xl) */}
+            <h3 className="text-sm md:text-xl font-bold text-brown-800 line-clamp-1" title={producto.nombre}>
+              {producto.nombre}
+            </h3>
           </Link>
-          <p className="text-sm text-gray-500 mb-1">{producto.artista}</p>
+          <p className="text-[10px] md:text-sm text-gray-500 mb-1">{producto.artista}</p>
           
-          <div className="flex flex-wrap gap-1 mt-2 mb-3">
+          {/* Ocultamos los tags de género en móvil para que no se vea "largo" */}
+          <div className="hidden md:flex flex-wrap gap-1 mt-2 mb-3">
             {producto.genero && <span className="text-[10px] bg-beige-200 text-brown-600 px-2 py-1 rounded font-bold uppercase">{producto.genero}</span>}
-            {producto.formato && <span className="text-[10px] bg-beige-200 text-brown-600 px-2 py-1 rounded font-bold uppercase">{producto.formato}</span>}
           </div>
           
-          <p className="text-xs text-gray-500 line-clamp-2 mb-4 flex-grow" title={producto.descripcion}>
+          {/* Descripción solo visible en PC para mantener la tarjeta compacta en móvil */}
+          <p className="hidden md:line-clamp-2 text-xs text-gray-500 mb-4 flex-grow" title={producto.descripcion}>
             {producto.descripcion}
           </p>
         </div>
 
         {/* Precio y Botón */}
-        <div className="flex justify-between items-center pt-4 border-t border-beige-100 mt-auto">
-          <span className="font-bold text-xl text-brown-800">S/ {Number(producto.precio).toFixed(2)}</span>
+        <div className="flex flex-col sm:flex-row justify-between items-center pt-3 border-t border-beige-100 mt-auto gap-2">
+          <span className="font-bold text-base md:text-xl text-brown-800">
+            S/ {Number(producto.precio).toFixed(2)}
+          </span>
 
           <button 
             onClick={handleAddToCart}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${
+            className={`w-full sm:w-auto px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition-all text-xs md:text-sm ${
               producto.stock > 0 
                 ? agregado 
                   ? "bg-green-600 text-white" 
@@ -80,8 +85,8 @@ export function ProductCard({ producto, index = 0 }: ProductCardProps) {
             }`}
             disabled={producto.stock <= 0}
           >
-            <ShoppingCart size={16} />
-            {agregado ? 'Listo' : producto.stock > 0 ? 'Añadir' : 'Agotado'}
+            <ShoppingCart size={14} className="md:w-4 md:h-4" />
+            <span className="inline">{agregado ? 'Listo' : producto.stock > 0 ? 'Añadir' : 'Agotado'}</span>
           </button>
         </div>
       </div>

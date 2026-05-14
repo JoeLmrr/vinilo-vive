@@ -1,7 +1,7 @@
 /**
  * @author Joe M.
  * @owner Empresa o Inc Vinilo Vive
- * @description Página principal (Home) del e-commerce Vinilo Vive.
+ * @description Página principal (Home) completa. Optimizada para 2 columnas en móvil.
  */
 import { motion } from 'motion/react';
 import { ArrowRight, Disc, Play, Star, Coffee, Info, ShoppingCart, Percent, Zap, Gift } from 'lucide-react';
@@ -36,7 +36,7 @@ export function Home() {
   }, []);
 
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-hidden bg-beige-50">
       {/* Sección Hero (Principal) */}
       <section id="hero" className="relative pt-16 pb-24 lg:pt-32 lg:pb-40 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -85,7 +85,6 @@ export function Home() {
                     </div>
                   </div>
                 </motion.div>
-                {/* Aguja decorativa */}
                 <div className="absolute -top-10 -right-10 w-48 h-10 bg-gradient-to-l from-brown-600 to-brown-400 rounded-full transform rotate-45 origin-right hidden lg:block" />
               </div>
             </motion.div>
@@ -93,10 +92,9 @@ export function Home() {
         </div>
       </section>
 
-      {/* 🎟️ Sección de Promociones Estilo Editorial */}
+      {/* Sección de Promociones */}
       <section className="py-24 bg-beige-50 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
           <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-6">
             <div className="max-w-2xl">
               <h2 className="text-5xl lg:text-7xl font-serif font-black text-brown-800 leading-none mb-6">
@@ -107,35 +105,25 @@ export function Home() {
               </p>
             </div>
             <div className="hidden lg:block text-right">
-              <span className="text-[100px] font-serif font-black text-beige-200/50 leading-none select-none">
-                2026
-              </span>
+              <span className="text-[100px] font-serif font-black text-beige-200/50 leading-none select-none">2026</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 rounded-[3rem] overflow-hidden shadow-2xl border border-beige-200">
-            
-            {/* Promo 1: La Oferta 3x2 (Lighter, Typography focused) */}
-            <motion.div 
-              whileHover={{ backgroundColor: '#F7F1E3' }}
-              className="bg-white p-12 flex flex-col justify-between min-h-[400px] border-b md:border-b-0 md:border-r border-beige-100 transition-colors group"
-            >
+            {/* Promo 1 */}
+            <motion.div whileHover={{ backgroundColor: '#F7F1E3' }} className="bg-white p-12 flex flex-col justify-between min-h-[400px] border-b md:border-b-0 md:border-r border-beige-100 transition-colors group">
               <div>
                 <span className="text-accent font-black text-[10px] uppercase tracking-[0.3em] mb-4 block">Limited Offer</span>
                 <h3 className="text-4xl font-serif font-bold text-brown-800 mb-6 group-hover:scale-105 transition-transform origin-left">Lleva 3, <br /> Paga 2</h3>
-                <p className="text-brown-600/70 leading-relaxed">
-                  En toda nuestra sección de jazz y blues clásico. El tercer disco de menor valor es nuestra cortesía.
-                </p>
+                <p className="text-brown-600/70 leading-relaxed">En toda nuestra sección de jazz y blues clásico. El tercer disco de menor valor es nuestra cortesía.</p>
               </div>
               <Link to="/Catalogo" className="flex items-center gap-3 text-brown-800 font-black text-xs uppercase tracking-widest mt-8 group">
                 Ver Colección <div className="w-10 h-[2px] bg-accent group-hover:w-16 transition-all"></div>
               </Link>
             </motion.div>
 
-            {/* Promo 2: Cupón (Accent Background) */}
-            <motion.div 
-              className="bg-accent p-12 flex flex-col justify-center items-center text-center min-h-[400px] relative group"
-            >
+            {/* Promo 2 */}
+            <motion.div className="bg-accent p-12 flex flex-col justify-center items-center text-center min-h-[400px] relative group">
               <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
                 <Disc size={300} className="absolute -top-20 -left-20 text-white animate-spin-slow" />
               </div>
@@ -151,31 +139,22 @@ export function Home() {
               </div>
             </motion.div>
 
-            {/* Promo 3: Club (Dark Minimalist) */}
-            <motion.div 
-              whileHover={{ backgroundColor: '#3D2B1F' }}
-              className="bg-brown-800 p-12 flex flex-col justify-between min-h-[400px] transition-colors group"
-            >
+            {/* Promo 3 */}
+            <motion.div whileHover={{ backgroundColor: '#3D2B1F' }} className="bg-brown-800 p-12 flex flex-col justify-between min-h-[400px] transition-colors group">
               <div>
                 <Gift className="text-accent mb-8 group-hover:rotate-12 transition-transform" size={40} />
                 <h3 className="text-4xl font-serif font-bold text-beige-50 mb-6">Membresía <br /> VinylVive</h3>
-                <p className="text-beige-100/40 leading-relaxed">
-                  Acceso a ediciones limitadas, preventas exclusivas y un disco sorpresa curado cada mes en tu puerta.
-                </p>
+                <p className="text-beige-100/40 leading-relaxed">Acceso a ediciones limitadas, preventas exclusivas y un disco sorpresa curado cada mes en tu puerta.</p>
               </div>
               <button className="flex items-center gap-3 text-accent font-black text-xs uppercase tracking-widest mt-8 group">
                 Unirme al Club <div className="w-10 h-[2px] bg-white/20 group-hover:bg-accent transition-all"></div>
               </button>
             </motion.div>
-
           </div>
         </div>
-
-        {/* Decoración abstracta lateral */}
-        <div className="absolute top-1/2 -right-20 w-64 h-64 border-[40px] border-beige-200 rounded-full opacity-20 pointer-events-none"></div>
       </section>
 
-      {/* Sección Recién Llegados */}
+      {/* Sección Recién Llegados - OPTIMIZADA 2 COLUMNAS MÓVIL */}
       {recienLlegados.length > 0 && (
         <section className="py-24 bg-beige-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -189,7 +168,7 @@ export function Home() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
               {recienLlegados.map((item, idx) => (
                 <ProductCard key={item.id} producto={item} index={idx} />
               ))}
@@ -198,65 +177,40 @@ export function Home() {
         </section>
       )}
 
-      {/* Sección Disco más Vendido / Disco del mes */}
+      {/* Sección Disco del Mes */}
       {discoDelMes && (
         <section className="py-24 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-brown-800 rounded-[3rem] p-8 lg:p-16 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 rounded-full blur-3xl -mr-32 -mt-32" />
-              
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div className="relative z-10 order-2 lg:order-1">
                   <div className="flex items-center gap-2 text-accent mb-6">
                     <Star className="w-5 h-5 fill-current" />
                     <span className="font-bold tracking-widest uppercase text-sm">Disco del Mes</span>
                   </div>
-                  <h2 className="text-4xl lg:text-6xl font-serif font-bold text-beige-50 mb-6">
-                    {discoDelMes.nombre}
-                  </h2>
+                  <h2 className="text-4xl lg:text-6xl font-serif font-bold text-beige-50 mb-6">{discoDelMes.nombre}</h2>
                   <p className="text-2xl text-accent mb-6 italic">{discoDelMes.artista}</p>
                   <p className="text-beige-100/70 text-lg mb-8 leading-relaxed max-w-lg">
                     {discoDelMes.descripcion_larga || discoDelMes.descripcion}
                   </p>
-                  
                   <div className="flex flex-wrap gap-2 mb-8">
                     {discoDelMes.genero && <span className="text-xs bg-white/10 text-beige-100 px-3 py-1 rounded-full border border-white/20">{discoDelMes.genero}</span>}
                     {discoDelMes.formato && <span className="text-xs bg-white/10 text-beige-100 px-3 py-1 rounded-full border border-white/20">{discoDelMes.formato}</span>}
-                    {discoDelMes.anio && <span className="text-xs bg-white/10 text-beige-100 px-3 py-1 rounded-full border border-white/20">{discoDelMes.anio}</span>}
-                    {discoDelMes.sello && <span className="text-xs bg-white/10 text-beige-100 px-3 py-1 rounded-full border border-white/20">{discoDelMes.sello}</span>}
                   </div>
-
                   <div className="flex items-center gap-8 mb-10">
-                    <div className="text-beige-50 font-bold text-3xl">${discoDelMes.precio}</div>
-                    <div className="text-accent/80 text-sm font-medium border-l border-beige-100/20 pl-8">
-                      {discoDelMes.stock > 0 ? `${discoDelMes.stock} unidades en stock` : 'Agotado'}
-                    </div>
+                    <div className="text-beige-50 font-bold text-3xl">S/ {Number(discoDelMes.precio).toFixed(2)}</div>
                   </div>
-                  
                   <button 
                     onClick={() => addToCart(discoDelMes)}
-                    className="px-10 py-4 bg-accent text-brown-800 font-bold rounded-xl hover:bg-beige-50 transition-all shadow-xl shadow-black/20 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-10 py-4 bg-accent text-brown-800 font-bold rounded-xl hover:bg-beige-50 transition-all shadow-xl shadow-black/20 flex items-center gap-2"
                     disabled={discoDelMes.stock <= 0}
                   >
                     <ShoppingCart size={20} />
                     {discoDelMes.stock > 0 ? 'Añadir al Carrito' : 'Agotado'}
                   </button>
                 </div>
-
-                <motion.div
-                  className="order-1 lg:order-2"
-                  initial={{ rotate: 5, scale: 0.9 }}
-                  whileInView={{ rotate: 0, scale: 1 }}
-                  viewport={{ once: true }}
-                >
-                  <div className="relative group p-4 bg-white/5 rounded-3xl backdrop-blur-sm border border-white/10">
-                    <img
-                      src={discoDelMes.imagen_url || 'https://via.placeholder.com/600'}
-                      alt={discoDelMes.nombre}
-                      className="w-full rounded-2xl shadow-2xl"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
+                <motion.div className="order-1 lg:order-2" initial={{ rotate: 5, scale: 0.9 }} whileInView={{ rotate: 0, scale: 1 }} viewport={{ once: true }}>
+                  <img src={discoDelMes.imagen_url || 'https://via.placeholder.com/600'} alt={discoDelMes.nombre} className="w-full rounded-2xl shadow-2xl" referrerPolicy="no-referrer" />
                 </motion.div>
               </div>
             </div>
@@ -264,18 +218,12 @@ export function Home() {
         </section>
       )}
 
-      {/* Destacados en Colección */}
+      {/* Destacados - OPTIMIZADA 2 COLUMNAS MÓVIL */}
       {destacados.length > 0 && (
         <section className="py-24 bg-beige-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-end mb-12">
-              <div>
-                <h2 className="text-4xl font-serif font-bold text-brown-800 mb-4">Selección Destacada</h2>
-                <p className="text-brown-600/70">Joyas musicales que no pueden faltar en tu colección.</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-10">
+            <h2 className="text-4xl font-serif font-bold text-brown-800 mb-12">Selección Destacada</h2>
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-10">
               {destacados.slice(0, 3).map((producto, indice) => (
                 <ProductCard key={producto.id} producto={producto} index={indice} />
               ))}
@@ -288,43 +236,26 @@ export function Home() {
       <section className="py-24 bg-beige-100 border-t border-beige-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[300px]">
-            <motion.div 
-              whileHover={{ scale: 0.98 }}
-              className="md:col-span-2 lg:row-span-2 bg-brown-800 rounded-[2.5rem] p-12 flex flex-col justify-between relative overflow-hidden group shadow-2xl"
-            >
+            <motion.div whileHover={{ scale: 0.98 }} className="md:col-span-2 lg:row-span-2 bg-brown-800 rounded-[2.5rem] p-12 flex flex-col justify-between relative overflow-hidden group shadow-2xl">
               <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none vinyl-spin">
                 <Disc className="w-full h-full scale-150" />
               </div>
               <div className="relative z-10">
-                <h2 className="text-4xl lg:text-6xl font-serif font-black text-beige-50 mb-6 leading-none">
-                  Explora el <br /><span className="text-accent italic">Universo</span> Sonoro
-                </h2>
-                <p className="text-beige-100/60 text-lg max-w-sm mb-8">
-                  Más de 5,000 títulos esperando ser descubiertos por tus oídos.
-                </p>
+                <h2 className="text-4xl lg:text-6xl font-serif font-black text-beige-50 mb-6 leading-none">Explora el <br /><span className="text-accent italic">Universo</span> Sonoro</h2>
+                <p className="text-beige-100/60 text-lg max-w-sm mb-8">Más de 5,000 títulos esperando ser descubiertos.</p>
               </div>
               <Link to="/Catalogo" className="relative z-10 w-fit px-8 py-4 bg-accent text-brown-800 font-bold rounded-2xl hover:bg-beige-50 transition-all flex items-center gap-3 group/btn">
-                Ver Catálogo Completo
-                <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform" />
+                Ver Catálogo Completo <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform" />
               </Link>
             </motion.div>
-
             <div className="md:col-span-1 bg-beige-200 rounded-[2.5rem] p-8 flex flex-col justify-end group cursor-pointer overflow-hidden relative shadow-lg">
-              <img src="https://images.unsplash.com/photo-1539375665275-f9ad415ef9ac?auto=format&fit=crop&q=80&w=400" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-40" />
-              <div className="relative z-10">
-                <h3 className="text-2xl font-serif font-bold text-brown-800">Jazz & Soul</h3>
-                <p className="text-brown-600/70">Clásicos inmortales</p>
-              </div>
+              <img src="https://images.unsplash.com/photo-1539375665275-f9ad415ef9ac?w=400" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-40" />
+              <h3 className="relative z-10 text-2xl font-serif font-bold text-brown-800">Jazz & Soul</h3>
             </div>
-
             <div className="md:col-span-1 bg-accent/20 rounded-[2.5rem] p-8 flex flex-col justify-end group cursor-pointer overflow-hidden relative shadow-lg">
-              <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=400" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-30" />
-              <div className="relative z-10">
-                <h3 className="text-2xl font-serif font-bold text-brown-800">Rock Alternativo</h3>
-                <p className="text-brown-600/70">Energía analógica</p>
-              </div>
+              <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-30" />
+              <h3 className="relative z-10 text-2xl font-serif font-bold text-brown-800">Rock Alternativo</h3>
             </div>
-
             <div className="md:col-span-2 bg-beige-50 border-2 border-beige-200 rounded-[2.5rem] p-10 flex items-center justify-between group cursor-pointer hover:border-accent transition-colors shadow-lg">
               <div>
                 <h3 className="text-3xl font-serif font-bold text-brown-800 mb-2">¿Buscas algo específico?</h3>
@@ -338,30 +269,21 @@ export function Home() {
         </div>
       </section>
 
-      {/* Sección Recomendados: La Experiencia */}
+      {/* Sección Mucho más que una Tienda (La Experiencia) */}
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-20">
             <h2 className="text-4xl font-serif font-bold text-brown-800 mb-6">Mucho más que una Tienda</h2>
-            <p className="text-lg text-brown-600/80">
-              En Vinilo Vive creemos que la música se vive mejor con los cinco sentidos. Ven a descubrir nuestro rincón diseñado para amantes del sonido puro.
-            </p>
+            <p className="text-lg text-brown-600/80">En Vinilo Vive creemos que la música se vive mejor con los cinco sentidos.</p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { titulo: "Zonas de Escucha", desc: "Prueba cualquier disco antes de llevarlo en nuestras estaciones premium.", icon: <Disc className="w-8 h-8" /> },
-              { titulo: "Barra de Café", desc: "Granos de origen tostados localmente para potenciar tu experiencia musical.", icon: <Coffee className="w-8 h-8" /> },
-              { titulo: "Comunidad", desc: "Eventos mensuales, sesiones de escucha y charlas técnicas sobre audio.", icon: <Info className="w-4 h-4" /> }
+              { titulo: "Zonas de Escucha", desc: "Prueba cualquier disco antes de llevarlo.", icon: <Disc className="w-8 h-8" /> },
+              { titulo: "Barra de Café", desc: "Granos de origen tostados localmente.", icon: <Coffee className="w-8 h-8" /> },
+              { titulo: "Comunidad", desc: "Eventos mensuales y sesiones de escucha.", icon: <Info className="w-8 h-8" /> }
             ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                whileHover={{ y: -10 }}
-                className="bg-beige-100 p-10 rounded-3xl border border-beige-200 transition-all hover:bg-beige-50 hover:shadow-xl hover:shadow-brown-600/5"
-              >
-                <div className="w-16 h-16 bg-accent/20 rounded-2xl flex items-center justify-center text-accent mb-8">
-                  {item.icon}
-                </div>
+              <motion.div key={idx} whileHover={{ y: -10 }} className="bg-beige-100 p-10 rounded-3xl border border-beige-200 transition-all">
+                <div className="w-16 h-16 bg-accent/20 rounded-2xl flex items-center justify-center text-accent mb-8">{item.icon}</div>
                 <h3 className="text-2xl font-serif font-bold text-brown-800 mb-4">{item.titulo}</h3>
                 <p className="text-brown-600/70 leading-relaxed">{item.desc}</p>
               </motion.div>

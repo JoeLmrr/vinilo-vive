@@ -7,33 +7,11 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 
-dotenv.config();
+dotenv.config({ silent: true });
 
-// ── Captura de errores no controlados ────────────────────────────────────────
-// Evita que el proceso muera silenciosamente sin dejar rastro en los logs.
-process.on("uncaughtException", (err) => {
-  console.error("[FATAL] uncaughtException:", err);
-});
-
-process.on("unhandledRejection", (reason) => {
-  console.error("[FATAL] unhandledRejection:", reason);
-});
-
-// ── Validación de variables de entorno requeridas ────────────────────────────
+// ── Variables de entorno ──────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error(
-    "[ERROR] Variables de entorno faltantes: " +
-    (!SUPABASE_URL ? "SUPABASE_URL " : "") +
-    (!SUPABASE_KEY ? "SUPABASE_KEY" : "")
-  );
-  console.error(
-    "[ERROR] El servidor arrancará pero las rutas de base de datos fallarán " +
-    "hasta que se configuren las variables correctamente."
-  );
-}
 
 const app = express();
 app.use(cors());
@@ -49,14 +27,7 @@ try {
     SUPABASE_URL || "https://placeholder.supabase.co",
     SUPABASE_KEY || "placeholder-key"
   );
-  if (SUPABASE_URL && SUPABASE_KEY) {
-    console.log("[INFO] Cliente Supabase inicializado correctamente.");
-  } else {
-    console.warn("[WARN] Cliente Supabase inicializado con valores de relleno — las consultas a BD fallarán.");
-  }
 } catch (err) {
-  console.error("[ERROR] No se pudo inicializar el cliente Supabase:", err);
-  // Objeto nulo-seguro para que las rutas devuelvan 503 en lugar de crashear.
   supabase = null;
 }
 
@@ -121,7 +92,6 @@ app.get("/destacados", async (req, res) => {
 // Endpoint: Obtener un producto por ID o Slug
 app.get("/productos/:idOrSlug", async (req, res) => {
   const { idOrSlug } = req.params;
-  console.log(`[API] Buscando producto: ${idOrSlug}`);
   
   try {
     // Validar si es un UUID (8-4-4-4-12 caracteres hexadecimales)
@@ -158,7 +128,6 @@ app.get("/productos/:idOrSlug", async (req, res) => {
     }
 
     if (!data) {
-      console.log(`[API] Producto no encontrado: ${idOrSlug}`);
       return res.status(404).json({ error: "Producto no encontrado" });
     }
 
@@ -172,7 +141,6 @@ app.get("/productos/:idOrSlug", async (req, res) => {
 // Endpoint: Crear una nueva orden
 app.post("/ordenes", async (req, res) => {
   const { usuario_id, total, items, nombre, email } = req.body;
-  console.log("[API] Recibiendo nueva orden:", { total, itemsCount: items?.length, email });
 
   try {
     let final_usuario_id = usuario_id;
@@ -190,7 +158,6 @@ app.post("/ordenes", async (req, res) => {
         final_usuario_id = existingUser.id;
       } else {
         // Si no existe, lo creamos con los atributos exactos del diagrama
-        console.log("[API] Creando nuevo usuario para la orden...");
         const { data: newUser, error: createError } = await supabase
           .from("usuarios")
           .insert([{ 
@@ -417,12 +384,6 @@ app.put("/admin/ordenes/:id/estado", async (req, res) => {
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("=".repeat(50));
-  console.log(`[INFO] Servidor Vinilo Vive arrancado correctamente`);
-  console.log(`[INFO] Escuchando en http://0.0.0.0:${PORT}`);
-  console.log(`[INFO] NODE_ENV: ${process.env.NODE_ENV || "development"}`);
-  console.log(`[INFO] Supabase URL configurada: ${SUPABASE_URL ? "✅ sí" : "❌ no"}`);
-  console.log(`[INFO] Supabase KEY configurada: ${SUPABASE_KEY ? "✅ sí" : "❌ no"}`);
-  console.log("=".repeat(50));
+  console.log(`[INFO] Servidor Vinilo Vive corriendo en puerto ${PORT}`);
 });
 

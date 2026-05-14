@@ -6,8 +6,6 @@ import {
   Search, 
   Edit2, 
   Trash2, 
-  MoreVertical,
-  Filter,
   X,
   Image as ImageIcon,
   Check,
@@ -52,14 +50,13 @@ export const AdminProducts = () => {
     if (product) {
       setCurrentProduct(product);
     } else {
-      // Valores por defecto para nuevos productos
       setCurrentProduct({
         nombre: '',
         artista: '',
         descripcion: '',
         precio: 0,
         stock: 0,
-        imagen_url: '',
+        imagen_url: '', // Único atributo de imagen utilizado
         genero: 'Rock',
         formato: 'Vinilo',
         condicion: 'Nuevo',
@@ -78,23 +75,22 @@ export const AdminProducts = () => {
     setCurrentProduct(null);
   };
 
-  // --- LÓGICA DE GUARDADO (CON CORRECCIÓN DE URL) ---
+  // --- LÓGICA DE GUARDADO (CORREGIDA PARA IMAGEN_URL) ---
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault(); // Evita la recarga de página
+    e.preventDefault();
     if (!currentProduct) return;
 
     setIsSaving(true);
     try {
-      // 1. Sanitización de datos: Limpiamos la URL y aseguramos que los números sean correctos
+      // 1. Preparación de datos: Aseguramos que imagen_url se envíe correctamente
       const productToSave = { 
         ...currentProduct,
-        // .trim() elimina espacios en blanco accidentales al inicio/final de la URL
-        imagen_url: currentProduct.imagen_url?.trim() || '',
+        imagen_url: currentProduct.imagen_url?.trim() || '', // Saneamiento de la URL
         precio: Number(currentProduct.precio) || 0,
         stock: Number(currentProduct.stock) || 0
       };
 
-      // 2. Generación automática de slug para SEO si no existe
+      // 2. Generación de slug si es necesario
       if (!productToSave.slug && productToSave.nombre) {
         productToSave.slug = productToSave.nombre
           .toLowerCase()
@@ -102,7 +98,7 @@ export const AdminProducts = () => {
           .replace(/[^\w-]+/g, '');
       }
 
-      // 3. Envío a la API (Update o Create)
+      // 3. Ejecución de la petición según el estado (Update o Create)
       if (currentProduct.id) {
         await api.updateProducto(currentProduct.id, productToSave);
         showNotification('success', 'Producto actualizado correctamente');
@@ -111,18 +107,17 @@ export const AdminProducts = () => {
         showNotification('success', 'Producto creado correctamente');
       }
 
-      // 4. Refrescar lista y cerrar
+      // 4. Refresco de la interfaz
       fetchProducts();
       handleCloseModal();
     } catch (error) {
-      console.error('Error saving product:', error);
-      showNotification('error', 'Error al guardar el producto');
+      console.error('Error al guardar:', error);
+      showNotification('error', 'Hubo un error al guardar los cambios');
     } finally {
       setIsSaving(false);
     }
   };
 
-  // --- ELIMINACIÓN ---
   const handleDelete = async (id: string | number) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este producto?')) {
       try {
@@ -135,7 +130,6 @@ export const AdminProducts = () => {
     }
   };
 
-  // --- FILTRADO ---
   const filteredProducts = products.filter(p => 
     p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.artista.toLowerCase().includes(searchTerm.toLowerCase())
@@ -143,7 +137,7 @@ export const AdminProducts = () => {
 
   return (
     <div className="space-y-6 font-sans">
-      {/* HEADER SECCIÓN */}
+      {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-brown-800 font-serif">Gestión de Productos</h1>
@@ -158,9 +152,9 @@ export const AdminProducts = () => {
         </button>
       </div>
 
-      {/* NOTIFICACIONES FLOTANTES */}
+      {/* NOTIFICACIONES */}
       {notification && (
-        <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl transition-all animate-in fade-in slide-in-from-top-4 ${
+        <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl transition-all ${
           notification.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
         }`}>
           {notification.type === 'success' ? <Check className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
@@ -168,7 +162,7 @@ export const AdminProducts = () => {
         </div>
       )}
 
-      {/* BARRA DE BÚSQUEDA */}
+      {/* BUSCADOR */}
       <div className="bg-white p-4 rounded-2xl border border-beige-100 shadow-sm flex flex-col md:flex-row gap-4">
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brown-300 w-5 h-5" />
@@ -177,12 +171,12 @@ export const AdminProducts = () => {
             placeholder="Buscar por nombre o artista..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all bg-beige-50/30"
+            className="w-full pl-10 pr-4 py-2 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none bg-beige-50/30"
           />
         </div>
       </div>
 
-      {/* TABLA DE PRODUCTOS */}
+      {/* LISTADO DE PRODUCTOS */}
       <div className="bg-white rounded-2xl border border-beige-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -203,18 +197,12 @@ export const AdminProducts = () => {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto"></div>
                   </td>
                 </tr>
-              ) : filteredProducts.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-brown-400">
-                    No se encontraron productos.
-                  </td>
-                </tr>
               ) : (
                 filteredProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-beige-50/30 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-beige-50 overflow-hidden flex-shrink-0 border border-beige-100">
+                        <div className="w-12 h-12 rounded-lg bg-beige-50 overflow-hidden border border-beige-100">
                           {product.imagen_url ? (
                             <img src={product.imagen_url} alt={product.nombre} className="w-full h-full object-cover" />
                           ) : (
@@ -235,9 +223,7 @@ export const AdminProducts = () => {
                     <td className="px-6 py-4 font-bold text-brown-800">
                       ${product.precio.toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 font-medium text-brown-600">
-                      {product.stock} unidades
-                    </td>
+                    <td className="px-6 py-4 font-medium text-brown-600">{product.stock}</td>
                     <td className="px-6 py-4">
                       {product.activo ? (
                         <span className="text-green-600 text-sm font-bold">Activo</span>
@@ -247,10 +233,10 @@ export const AdminProducts = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleOpenModal(product)} className="p-2 hover:bg-beige-100 text-brown-300 hover:text-accent rounded-lg transition-colors">
+                        <button onClick={() => handleOpenModal(product)} className="p-2 text-brown-300 hover:text-accent rounded-lg">
                           <Edit2 className="w-5 h-5" />
                         </button>
-                        <button onClick={() => handleDelete(product.id)} className="p-2 hover:bg-red-50 text-brown-300 hover:text-red-500 rounded-lg transition-colors">
+                        <button onClick={() => handleDelete(product.id)} className="p-2 text-brown-300 hover:text-red-500 rounded-lg">
                           <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
@@ -263,7 +249,7 @@ export const AdminProducts = () => {
         </div>
       </div>
 
-      {/* MODAL FORMULARIO */}
+      {/* MODAL DE EDICIÓN / CREACIÓN */}
       {isModalOpen && currentProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brown-900/60 backdrop-blur-sm">
           <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl">
@@ -278,11 +264,11 @@ export const AdminProducts = () => {
 
             <form onSubmit={handleSave} className="p-8 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* COLUMNA 1: INFO BÁSICA */}
+                {/* INFORMACIÓN BÁSICA */}
                 <div className="space-y-6">
                   <h3 className="text-sm font-bold text-accent uppercase tracking-widest">Información Básica</h3>
                   <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-brown-700">Nombre del Álbum / Producto</label>
+                    <label className="block text-sm font-semibold text-brown-700">Nombre del Álbum</label>
                     <input
                       type="text"
                       required
@@ -292,7 +278,7 @@ export const AdminProducts = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-brown-700">Artista / Marca</label>
+                    <label className="block text-sm font-semibold text-brown-700">Artista</label>
                     <input
                       type="text"
                       required
@@ -313,7 +299,7 @@ export const AdminProducts = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-brown-700">Stock Inicial</label>
+                      <label className="block text-sm font-semibold text-brown-700">Stock</label>
                       <input
                         type="number"
                         required
@@ -323,9 +309,17 @@ export const AdminProducts = () => {
                       />
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-brown-700">Descripción</label>
+                    <textarea
+                      value={currentProduct.descripcion || ''}
+                      onChange={(e) => setCurrentProduct({...currentProduct, descripcion: e.target.value})}
+                      className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl outline-none min-h-[100px]"
+                    />
+                  </div>
                 </div>
 
-                {/* COLUMNA 2: DETALLES Y MEDIA (AQUÍ ESTÁ EL ARREGLO) */}
+                {/* DETALLES Y MEDIA */}
                 <div className="space-y-6">
                   <h3 className="text-sm font-bold text-accent uppercase tracking-widest">Detalles y Media</h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -353,14 +347,13 @@ export const AdminProducts = () => {
                         className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl outline-none"
                       >
                         <option value="Vinilo">Vinilo LP</option>
-                        <option value="Vinilo 7">Vinilo 7"</option>
                         <option value="CD">CD</option>
                         <option value="Accesorio">Accesorio</option>
                       </select>
                     </div>
                   </div>
 
-                  {/* CAMBIO CLAVE: type="text" para evitar bloqueos por validación de URL de HTML5 */}
+                  {/* URL DE LA IMAGEN (AQUÍ ESTÁ EL CAMBIO) */}
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-brown-700">URL de la Imagen</label>
                     <div className="flex gap-4">
@@ -383,7 +376,7 @@ export const AdminProducts = () => {
                     </div>
                   </div>
 
-                  {/* CHECKBOXES DE CATEGORÍAS */}
+                  {/* CATEGORÍAS */}
                   <div className="space-y-4 pt-4">
                     <label className="flex items-center gap-3 cursor-pointer group">
                       <input type="checkbox" checked={currentProduct.disco_del_mes} onChange={(e) => setCurrentProduct({...currentProduct, disco_del_mes: e.target.checked})} className="w-5 h-5 rounded border-beige-200 text-accent" />
@@ -401,7 +394,7 @@ export const AdminProducts = () => {
                 </div>
               </div>
 
-              {/* BOTONES ACCIÓN */}
+              {/* ACCIONES */}
               <div className="pt-6 border-t border-beige-100 flex items-center justify-end gap-4">
                 <button type="button" onClick={handleCloseModal} className="px-6 py-3 border border-beige-100 rounded-xl hover:bg-beige-50 font-semibold text-brown-600">
                   Cancelar
@@ -411,7 +404,7 @@ export const AdminProducts = () => {
                   disabled={isSaving}
                   className="px-10 py-3 bg-brown-700 hover:bg-brown-800 text-white rounded-xl font-bold shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
                 >
-                  {isSaving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Check className="w-5 h-5" />}
+                  {isSaving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Check className="w-5 h-5" />}
                   {currentProduct.id ? 'Actualizar Producto' : 'Crear Producto'}
                 </button>
               </div>

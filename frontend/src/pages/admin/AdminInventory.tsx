@@ -79,13 +79,13 @@ export const AdminProducts = () => {
 
     setIsSaving(true);
     try {
-      // Aseguramos que la URL sea un string limpio para la base de datos
-      const productToSave = { 
-        ...currentProduct,
-        imagen_url: currentProduct.imagen_url?.trim() || ''
-      };
+      const productToSave = { ...currentProduct };
+      
+      // Limpiar URL para evitar errores en DB
+      if (productToSave.imagen_url) {
+        productToSave.imagen_url = productToSave.imagen_url.trim();
+      }
 
-      // Generar slug si no existe
       if (!productToSave.slug && productToSave.nombre) {
         productToSave.slug = productToSave.nombre
           .toLowerCase()
@@ -143,7 +143,6 @@ export const AdminProducts = () => {
         </button>
       </div>
 
-      {/* Notifications */}
       {notification && (
         <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl transition-all animate-in fade-in slide-in-from-top-4 ${
           notification.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
@@ -153,7 +152,6 @@ export const AdminProducts = () => {
         </div>
       )}
 
-      {/* Filters and Search */}
       <div className="bg-white p-4 rounded-2xl border border-beige-100 shadow-sm flex flex-col md:flex-row gap-4">
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brown-300 w-5 h-5" />
@@ -171,7 +169,6 @@ export const AdminProducts = () => {
         </button>
       </div>
 
-      {/* Products Table */}
       <div className="bg-white rounded-2xl border border-beige-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -261,7 +258,6 @@ export const AdminProducts = () => {
         </div>
       </div>
 
-      {/* Modal Form */}
       {isModalOpen && currentProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brown-900/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
@@ -276,10 +272,8 @@ export const AdminProducts = () => {
 
             <form onSubmit={handleSave} className="p-8 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Basic Info */}
                 <div className="space-y-6">
                   <h3 className="text-sm font-bold text-accent uppercase tracking-widest">Información Básica</h3>
-                  
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-brown-700">Nombre del Álbum / Producto</label>
                     <input
@@ -291,7 +285,6 @@ export const AdminProducts = () => {
                       placeholder="Ej: Dark Side of the Moon"
                     />
                   </div>
-
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-brown-700">Artista / Marca</label>
                     <input
@@ -303,7 +296,6 @@ export const AdminProducts = () => {
                       placeholder="Ej: Pink Floyd"
                     />
                   </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-brown-700">Precio ($)</label>
@@ -326,7 +318,6 @@ export const AdminProducts = () => {
                       />
                     </div>
                   </div>
-
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-brown-700">Descripción</label>
                     <textarea
@@ -339,10 +330,8 @@ export const AdminProducts = () => {
                   </div>
                 </div>
 
-                {/* Categories and Media */}
                 <div className="space-y-6">
                   <h3 className="text-sm font-bold text-accent uppercase tracking-widest">Detalles y Media</h3>
-                  
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-brown-700">Género</label>

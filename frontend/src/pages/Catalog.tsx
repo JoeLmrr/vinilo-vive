@@ -1,5 +1,7 @@
 /**
- * @description Página del catálogo principal. Modificada para grid de 2 columnas en móvil.
+ * @author Joe M.
+ * @owner Empresa o Inc Vinilo Vive
+ * @description Página del catálogo principal. Incluye filtrado, búsqueda y ordenamiento A-Z.
  */
 import { motion } from 'motion/react';
 import { Search, SortAsc, SortDesc, Clock } from 'lucide-react';
@@ -29,6 +31,7 @@ export function Catalog() {
       .finally(() => setCargando(false));
   }, []);
 
+  // Lógica de Filtrado y Ordenamiento Re-integrada
   const productosFiltrados = productos
     .filter(producto => {
       const coincideCategoria = categoriaSeleccionada === "Total" || producto.genero === categoriaSeleccionada;
@@ -39,7 +42,7 @@ export function Catalog() {
     .sort((a, b) => {
       if (orden === "A-Z") return a.artista.localeCompare(b.artista);
       if (orden === "Z-A") return b.artista.localeCompare(a.artista);
-      return 0;
+      return 0; // "Reciente" mantiene el orden original de la API
     });
 
   return (
@@ -60,8 +63,9 @@ export function Catalog() {
 
         <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
           <aside className="lg:w-72 flex-shrink-0">
-            {/* Barra lateral de filtros se mantiene igual */}
-            <div className="space-y-8 md:sticky md:top-32">
+            <div className="sticky top-32 space-y-10">
+              
+              {/* 🔍 Buscador */}
               <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-brown-400" />
                 <input
@@ -69,9 +73,38 @@ export function Catalog() {
                   placeholder="Buscar obra..."
                   value={terminoBusqueda}
                   onChange={(e) => setTerminoBusqueda(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-white border-2 border-beige-200 rounded-2xl outline-none focus:border-accent transition-colors"
+                  className="w-full pl-12 pr-4 py-3 bg-white border-2 border-beige-200 rounded-2xl outline-none focus:border-accent transition-colors text-brown-800"
                 />
               </div>
+
+              {/* 📊 PANEL RE-INTEGRADO: Ordenamiento */}
+              <div className="space-y-4">
+                <span className="text-accent font-bold uppercase tracking-widest text-[10px] block">
+                  Ordenar Catálogo
+                </span>
+                <div className="flex flex-col gap-2">
+                  {[
+                    { id: 'Reciente', label: 'Recién Llegados', icon: Clock },
+                    { id: 'A-Z', label: 'Artista (A - Z)', icon: SortAsc },
+                    { id: 'Z-A', label: 'Artista (Z - A)', icon: SortDesc }
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => setOrden(option.id as any)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all border-2 text-sm font-semibold ${
+                        orden === option.id 
+                          ? 'bg-brown-800 border-brown-800 text-white shadow-lg' 
+                          : 'bg-white border-beige-100 text-brown-400 hover:border-beige-200'
+                      }`}
+                    >
+                      <option.icon className={`w-4 h-4 ${orden === option.id ? 'text-accent' : ''}`} />
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 🎼 Filtros de Género */}
               <GenreFilter 
                 categorias={categorias} 
                 categoriaSeleccionada={categoriaSeleccionada} 
@@ -82,11 +115,12 @@ export function Catalog() {
 
           <div className="flex-grow">
             {cargando ? (
-              <div className="flex justify-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-accent"></div>
+              <div className="flex justify-center py-20 animate-pulse text-accent">Cargando biblioteca...</div>
+            ) : productosFiltrados.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-2xl border border-beige-200 text-brown-600">
+                No hay resultados para tu búsqueda.
               </div>
             ) : (
-              /* EXPLICACIÓN: grid-cols-2 es el cambio principal para móvil. gap-4 evita el exceso de aire. */
               <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-10">
                 {productosFiltrados.map((producto, indice) => (
                   <ProductCard key={producto.id} producto={producto} index={indice} />

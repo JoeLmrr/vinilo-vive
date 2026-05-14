@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Disc, Coffee, Info, ShoppingBag, Music2, Home, ShoppingCart, X, Plus, Minus, Trash2 } from 'lucide-react';
+import { Disc, Coffee, Info, ShoppingBag, Music2, Home, ShoppingCart, X, Plus, Minus, Trash2, Menu } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -87,7 +87,8 @@ export function Navbar() {
                 className="md:hidden p-2 text-brown-800"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
-                {isMenuOpen ? <X className="w-6 h-6" /> : <Disc className="w-6 h-6 text-brown-600" />}
+                {/* Cambio de Disc por Menu para mejor representación visual */}
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 text-brown-600" />}
               </button>
             </div>
           </div>

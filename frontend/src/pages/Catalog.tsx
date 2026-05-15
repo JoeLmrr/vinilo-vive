@@ -1,10 +1,10 @@
 /**
  * @author Joe M.
  * @owner Empresa o Inc Vinilo Vive
- * @description Página del catálogo principal. Incluye filtrado, búsqueda y ordenamiento A-Z.
+ * @description Página del catálogo principal. Incluye filtrado, búsqueda, ordenamiento A-Z y paginación.
  */
 import { motion } from 'motion/react';
-import { Search, SortAsc, SortDesc, Clock } from 'lucide-react';
+import { Search, SortAsc, SortDesc, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { Producto } from '../types/product';
@@ -19,6 +19,10 @@ export function Catalog() {
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [orden, setOrden] = useState<"A-Z" | "Z-A" | "Reciente">("Reciente");
 
+  // --- ESTADOS PARA PAGINACIÓN ---
+  const [paginaActual, setPaginaActual] = useState(1);
+  const productosPorPagina = 12;
+
   useEffect(() => {
     setCargando(true);
     api.getProductos()
@@ -31,7 +35,12 @@ export function Catalog() {
       .finally(() => setCargando(false));
   }, []);
 
-  // Lógica de Filtrado y Ordenamiento Re-integrada
+  // Resetear a la página 1 cuando se cambia el filtro o la búsqueda
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [categoriaSeleccionada, terminoBusqueda, orden]);
+
+  // Lógica de Filtrado y Ordenamiento
   const productosFiltrados = productos
     .filter(producto => {
       const coincideCategoria = categoriaSeleccionada === "Total" || producto.genero === categoriaSeleccionada;
@@ -42,8 +51,19 @@ export function Catalog() {
     .sort((a, b) => {
       if (orden === "A-Z") return a.artista.localeCompare(b.artista);
       if (orden === "Z-A") return b.artista.localeCompare(a.artista);
-      return 0; // "Reciente" mantiene el orden original de la API
+      return 0; 
     });
+
+  // --- CÁLCULO DE PAGINACIÓN ---
+  const indiceUltimoProducto = paginaActual * productosPorPagina;
+  const indicePrimerProducto = indiceUltimoProducto - productosPorPagina;
+  const productosPaginados = productosFiltrados.slice(indicePrimerProducto, indiceUltimoProducto);
+  const totalPaginas = Math.ceil(productosFiltrados.length / productosPorPagina);
+
+  const cambiarPagina = (numeroPagina: number) => {
+    setPaginaActual(numeroPagina);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="bg-beige-50 min-h-screen">
@@ -65,7 +85,6 @@ export function Catalog() {
           <aside className="lg:w-72 flex-shrink-0">
             <div className="sticky top-32 space-y-10">
               
-              {/* 🔍 Buscador */}
               <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-brown-400" />
                 <input
@@ -77,7 +96,6 @@ export function Catalog() {
                 />
               </div>
 
-              {/* 📊 PANEL RE-INTEGRADO: Ordenamiento */}
               <div className="space-y-4">
                 <span className="text-accent font-bold uppercase tracking-widest text-[10px] block">
                   Ordenar Catálogo
@@ -104,7 +122,6 @@ export function Catalog() {
                 </div>
               </div>
 
-              {/* 🎼 Filtros de Género */}
               <GenreFilter 
                 categorias={categorias} 
                 categoriaSeleccionada={categoriaSeleccionada} 
@@ -121,11 +138,60 @@ export function Catalog() {
                 No hay resultados para tu búsqueda.
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-10">
-                {productosFiltrados.map((producto, indice) => (
-                  <ProductCard key={producto.id} producto={producto} index={indice} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-10">
+                  {productosPaginados.map((producto, indice) => (
+                    <ProductCard key={producto.id} producto={producto} index={indice} />
+                  ))}
+                </div>
+
+                {/* --- COMPONENTE DE PAGINACIÓN --- */}
+                {totalPaginas > 1 && (
+                  <div className="mt-16 flex justify-center items-center gap-2">
+                    <button
+                      onClick={() => cambiarPagina(paginaActual - 1)}
+                      disabled={paginaActual === 1}
+                      className="p-3 rounded-xl bg-white border-2 border-beige-200 text-brown-800 disabled:opacity-30 disabled:cursor-not-allowed hover:border-accent transition-colors"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+
+                    <div className="flex gap-2">
+                      {[...Array(totalPaginas)].map((_, i) => {
+                        const num = i + 1;
+                        // Mostrar solo páginas cercanas a la actual para no saturar
+                        if (num === 1 || num === totalPaginas || (num >= paginaActual - 1 && num <= paginaActual + 1)) {
+                          return (
+                            <button
+                              key={num}
+                              onClick={() => cambiarPagina(num)}
+                              className={`w-12 h-12 rounded-xl font-bold text-sm transition-all ${
+                                paginaActual === num
+                                  ? 'bg-brown-800 text-white shadow-md'
+                                  : 'bg-white border-2 border-beige-100 text-brown-400 hover:border-beige-200'
+                              }`}
+                            >
+                              {num}
+                            </button>
+                          );
+                        }
+                        if (num === paginaActual - 2 || num === paginaActual + 2) {
+                          return <span key={num} className="flex items-end pb-2 text-brown-300">...</span>;
+                        }
+                        return null;
+                      })}
+                    </div>
+
+                    <button
+                      onClick={() => cambiarPagina(paginaActual + 1)}
+                      disabled={paginaActual === totalPaginas}
+                      className="p-3 rounded-xl bg-white border-2 border-beige-200 text-brown-800 disabled:opacity-30 disabled:cursor-not-allowed hover:border-accent transition-colors"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

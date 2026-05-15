@@ -94,7 +94,7 @@ export function AboutUs() {
                   <Mail className="w-6 h-6 text-accent shrink-0" />
                   <div>
                     <div className="font-bold text-lg mb-1">Email</div>
-                    <p className="text-beige-100/60">hola@vinilovive.com</p>
+                    <p className="text-beige-100/60">vinilovive@contacto.com</p>
                   </div>
                 </li>
               </ul>

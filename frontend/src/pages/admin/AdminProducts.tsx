@@ -55,7 +55,7 @@ export const AdminProducts = () => {
         stock: 0,
         imagen_url: '',
         genero: 'Rock',
-        formato: 'Vinilo',
+        formato: 'Vinilo LP',
         condicion: 'Nuevo',
         activo: true,
         disco_del_mes: false,
@@ -78,37 +78,45 @@ export const AdminProducts = () => {
 
     setIsSaving(true);
     try {
-      // 1. PREPARACIÓN DE DATOS (Corrección para la DB)
-      const productToSave = { 
-        ...currentProduct,
-        // Forzar tipos numéricos para evitar error de tipo en PostgreSQL
+      // 1. PREPARACIÓN ESTRICTA DE DATOS
+      // Mapeamos los campos para que coincidan con los tipos de la DB
+      const productToSave: any = {
+        nombre: currentProduct.nombre,
+        artista: currentProduct.artista,
+        descripcion: currentProduct.descripcion,
         precio: Number(currentProduct.precio) || 0,
         stock: Number(currentProduct.stock) || 0,
-        // Asegurar campos requeridos que podrían estar nulos
+        imagen_url: currentProduct.imagen_url,
+        genero: currentProduct.genero || 'Rock',
+        formato: currentProduct.formato || 'Vinilo LP',
         condicion: currentProduct.condicion || 'Nuevo',
         activo: currentProduct.activo ?? true,
-        genero: currentProduct.genero || 'Rock',
-        formato: currentProduct.formato || 'Vinilo LP'
+        disco_del_mes: Boolean(currentProduct.disco_del_mes),
+        recien_llegado: Boolean(currentProduct.recien_llegado),
+        destacado: Boolean(currentProduct.destacado),
+        orden_home: Number(currentProduct.orden_home) || 0
       };
 
-      // 2. Lógica de SLUG (Campo obligatorio en tu tabla)
-      if (!productToSave.slug && productToSave.nombre) {
+      // 2. Lógica de SLUG (Evita errores de campo nulo)
+      if (!currentProduct.slug && productToSave.nombre) {
         productToSave.slug = productToSave.nombre
           .toLowerCase()
           .trim()
           .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "") // Quitar tildes
-          .replace(/[^a-z0-9\s-]/g, "") // Quitar caracteres especiales
-          .replace(/\s+/g, '-') // Espacios por guiones
-          .replace(/-+/g, '-'); // Evitar guiones dobles
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-');
+      } else {
+        productToSave.slug = currentProduct.slug;
       }
 
       // 3. ACTUALIZACIÓN O CREACIÓN
       if (currentProduct.id) {
-        await api.updateProducto(currentProduct.id, productToSave as Producto);
+        await api.updateProducto(currentProduct.id, productToSave);
         showNotification('success', 'Producto actualizado correctamente');
       } else {
-        await api.createProducto(productToSave as Producto);
+        await api.createProducto(productToSave);
         showNotification('success', 'Producto creado correctamente');
       }
       
@@ -116,7 +124,7 @@ export const AdminProducts = () => {
       handleCloseModal();
     } catch (error) {
       console.error('Error saving product:', error);
-      showNotification('error', 'Error de servidor: Revisa campos obligatorios');
+      showNotification('error', 'Error al guardar: Revisa los campos obligatorios');
     } finally {
       setIsSaving(false);
     }

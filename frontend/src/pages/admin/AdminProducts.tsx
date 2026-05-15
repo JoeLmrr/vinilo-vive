@@ -6,12 +6,11 @@ import {
   Search, 
   Edit2, 
   Trash2, 
-  MoreVertical,
-  Filter,
   X,
   Image as ImageIcon,
   Check,
-  AlertCircle
+  AlertCircle,
+  Filter
 } from 'lucide-react';
 
 export const AdminProducts = () => {
@@ -79,27 +78,45 @@ export const AdminProducts = () => {
 
     setIsSaving(true);
     try {
-      // Generar slug si no existe
-      const productToSave = { ...currentProduct };
+      // 1. PREPARACIÓN DE DATOS (Corrección para la DB)
+      const productToSave = { 
+        ...currentProduct,
+        // Forzar tipos numéricos para evitar error de tipo en PostgreSQL
+        precio: Number(currentProduct.precio) || 0,
+        stock: Number(currentProduct.stock) || 0,
+        // Asegurar campos requeridos que podrían estar nulos
+        condicion: currentProduct.condicion || 'Nuevo',
+        activo: currentProduct.activo ?? true,
+        genero: currentProduct.genero || 'Rock',
+        formato: currentProduct.formato || 'Vinilo LP'
+      };
+
+      // 2. Lógica de SLUG (Campo obligatorio en tu tabla)
       if (!productToSave.slug && productToSave.nombre) {
         productToSave.slug = productToSave.nombre
           .toLowerCase()
-          .replace(/ /g, '-')
-          .replace(/[^\w-]+/g, '');
+          .trim()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "") // Quitar tildes
+          .replace(/[^a-z0-9\s-]/g, "") // Quitar caracteres especiales
+          .replace(/\s+/g, '-') // Espacios por guiones
+          .replace(/-+/g, '-'); // Evitar guiones dobles
       }
 
+      // 3. ACTUALIZACIÓN O CREACIÓN
       if (currentProduct.id) {
-        await api.updateProducto(currentProduct.id, productToSave);
+        await api.updateProducto(currentProduct.id, productToSave as Producto);
         showNotification('success', 'Producto actualizado correctamente');
       } else {
-        await api.createProducto(productToSave);
+        await api.createProducto(productToSave as Producto);
         showNotification('success', 'Producto creado correctamente');
       }
+      
       fetchProducts();
       handleCloseModal();
     } catch (error) {
       console.error('Error saving product:', error);
-      showNotification('error', 'Error al guardar el producto');
+      showNotification('error', 'Error de servidor: Revisa campos obligatorios');
     } finally {
       setIsSaving(false);
     }
@@ -118,8 +135,8 @@ export const AdminProducts = () => {
   };
 
   const filteredProducts = products.filter(p => 
-    p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.artista.toLowerCase().includes(searchTerm.toLowerCase())
+    p.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.artista?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -138,7 +155,6 @@ export const AdminProducts = () => {
         </button>
       </div>
 
-      {/* Notifications */}
       {notification && (
         <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl transition-all animate-in fade-in slide-in-from-top-4 ${
           notification.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
@@ -148,7 +164,6 @@ export const AdminProducts = () => {
         </div>
       )}
 
-      {/* Filters and Search */}
       <div className="bg-white p-4 rounded-2xl border border-beige-100 shadow-sm flex flex-col md:flex-row gap-4">
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brown-300 w-5 h-5" />
@@ -166,7 +181,6 @@ export const AdminProducts = () => {
         </button>
       </div>
 
-      {/* Products Table */}
       <div className="bg-white rounded-2xl border border-beige-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -217,11 +231,11 @@ export const AdminProducts = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 font-bold text-brown-800">
-                      ${product.precio.toLocaleString()}
+                      ${Number(product.precio).toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${product.stock > 5 ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                        <span className={`w-2 h-2 rounded-full ${Number(product.stock) > 5 ? 'bg-green-500' : 'bg-red-500'}`}></span>
                         <span className="font-medium text-brown-600">{product.stock} unidades</span>
                       </div>
                     </td>
@@ -241,7 +255,7 @@ export const AdminProducts = () => {
                           <Edit2 className="w-5 h-5" />
                         </button>
                         <button 
-                          onClick={() => handleDelete(product.id)}
+                          onClick={() => product.id && handleDelete(product.id)}
                           className="p-2 hover:bg-red-50 text-brown-300 hover:text-red-500 rounded-lg transition-colors"
                         >
                           <Trash2 className="w-5 h-5" />
@@ -256,7 +270,6 @@ export const AdminProducts = () => {
         </div>
       </div>
 
-      {/* Modal Form */}
       {isModalOpen && currentProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brown-900/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
@@ -271,7 +284,6 @@ export const AdminProducts = () => {
 
             <form onSubmit={handleSave} className="p-8 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Basic Info */}
                 <div className="space-y-6">
                   <h3 className="text-sm font-bold text-accent uppercase tracking-widest">Información Básica</h3>
                   
@@ -305,7 +317,8 @@ export const AdminProducts = () => {
                       <input
                         type="number"
                         required
-                        value={currentProduct.precio || 0}
+                        step="0.01"
+                        value={currentProduct.precio ?? 0}
                         onChange={(e) => setCurrentProduct({...currentProduct, precio: parseFloat(e.target.value)})}
                         className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
                       />
@@ -315,7 +328,7 @@ export const AdminProducts = () => {
                       <input
                         type="number"
                         required
-                        value={currentProduct.stock || 0}
+                        value={currentProduct.stock ?? 0}
                         onChange={(e) => setCurrentProduct({...currentProduct, stock: parseInt(e.target.value)})}
                         className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
                       />
@@ -334,7 +347,6 @@ export const AdminProducts = () => {
                   </div>
                 </div>
 
-                {/* Categories and Media */}
                 <div className="space-y-6">
                   <h3 className="text-sm font-bold text-accent uppercase tracking-widest">Detalles y Media</h3>
                   
@@ -358,11 +370,11 @@ export const AdminProducts = () => {
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-brown-700">Formato</label>
                       <select
-                        value={currentProduct.formato || 'Vinilo'}
+                        value={currentProduct.formato || 'Vinilo LP'}
                         onChange={(e) => setCurrentProduct({...currentProduct, formato: e.target.value})}
                         className="w-full px-4 py-3 bg-beige-50/50 border border-beige-100 rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
                       >
-                        <option value="Vinilo">Vinilo LP</option>
+                        <option value="Vinilo LP">Vinilo LP</option>
                         <option value="Vinilo 7">Vinilo 7"</option>
                         <option value="CD">CD</option>
                         <option value="Accesorio">Accesorio</option>
